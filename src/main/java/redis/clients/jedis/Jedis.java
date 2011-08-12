@@ -1970,9 +1970,9 @@ public class Jedis extends BinaryJedis implements JedisCommands {
     public void subscribe(JedisPubSub jedisPubSub, String... channels) {
         checkIsInMulti();
         connect();
-        client.setTimeoutInfinite();
+        // client.setTimeoutInfinite();
         jedisPubSub.proceed(client, channels);
-        client.rollbackTimeout();
+        // client.rollbackTimeout();
     }
 
     public Long publish(String channel, String message) {
@@ -1984,9 +1984,9 @@ public class Jedis extends BinaryJedis implements JedisCommands {
     public void psubscribe(JedisPubSub jedisPubSub, String... patterns) {
         checkIsInMulti();
         connect();
-        client.setTimeoutInfinite();
+        // client.setTimeoutInfinite();
         jedisPubSub.proceedWithPatterns(client, patterns);
-        client.rollbackTimeout();
+        // client.rollbackTimeout();
     }
 
     public Long zcount(final String key, final double min, final double max) {
