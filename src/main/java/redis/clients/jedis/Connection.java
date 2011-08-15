@@ -149,12 +149,14 @@ public class Connection {
     protected String getStatusCodeReply() {
         flush();
         pipelinedCommands--;
-        final byte[] resp = (byte[]) protocol.read(inputStream);
-        if (null == resp) {
-            return null;
-        } else {
-            return SafeEncoder.encode(resp);
+        Object rawResponse = protocol.read(inputStream);
+        if (rawResponse == null ||
+        	!(rawResponse instanceof byte[])) {
+        	return null;
         }
+        
+        final byte[] resp = (byte[]) rawResponse;
+        return SafeEncoder.encode(resp);
     }
 
     public String getBulkReply() {
