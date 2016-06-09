@@ -42,5 +42,6 @@ dependencies {
     }
 
     compile 'commons-pool:commons-pool:1.6'
+    testCompile 'junit:junit:4.11'
 
 }
