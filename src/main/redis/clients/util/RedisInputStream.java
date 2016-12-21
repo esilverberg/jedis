@@ -61,6 +61,8 @@ public class RedisInputStream extends FilterInputStream {
                 }
                 if (limit == -1)
                     break;
+                if (count >= buf.length)
+                    break;
 
                 b = buf[count++];
                 if (b == '\r') {
