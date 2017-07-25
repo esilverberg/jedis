@@ -44,6 +44,12 @@ public class RedisInputStream extends FilterInputStream {
     public byte readByte() throws IOException {
         if (count == limit) {
             fill();
+
+            // SCRUFF added 7/2017 per exceptions in Crashlytics and based on modern rewrites of this class
+            // see https://github.com/xetorthio/jedis/blob/master/src/main/java/redis/clients/util/RedisInputStream.java
+            if (limit == -1) {
+                throw new JedisConnectionException("Unexpected end of stream.");
+            }
         }
 
         return buf[count++];
@@ -90,8 +96,7 @@ public class RedisInputStream extends FilterInputStream {
         }
         String reply = sb.toString();
         if (reply.length() == 0) {
-            throw new JedisConnectionException(
-                    "It seems like server has closed the connection.");
+            throw new JedisConnectionException("Unexpected end of stream.");
         }
         return reply;
     }
