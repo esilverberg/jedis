@@ -14,7 +14,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
 
   defaultConfig {
-      minSdkVersion rootProject.ext.minLegacySdkVersion
+      minSdkVersion 14
       targetSdkVersion rootProject.ext.targetSdkVersion
   }
 
@@ -41,7 +41,6 @@ dependencies {
         mavenCentral()
     }
 
-    compile 'commons-pool:commons-pool:1.6'
-    testCompile dep.junit
-
+    implementation 'commons-pool:commons-pool:1.6'
+    testImplementation "junit:junit:$junitVersion"
 }
