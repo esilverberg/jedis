@@ -41,6 +41,6 @@ dependencies {
         mavenCentral()
     }
 
-    implementation 'commons-pool:commons-pool:1.6'
+    implementation "commons-pool:commons-pool:$apacheCommonsVersion"
     testImplementation "junit:junit:$junitVersion"
 }
