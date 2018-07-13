@@ -2,5 +2,4 @@
 package="redis.clients.jedis"
 android:versionCode="1"
 android:versionName="2.0.1-a">
-<uses-sdk android:minSdkVersion="8" android:targetSdkVersion="15" />
 </manifest>
