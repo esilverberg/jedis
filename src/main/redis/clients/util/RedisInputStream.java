@@ -23,6 +23,8 @@ import java.io.InputStream;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisException;
 
+// SCRUFF added 8/2018 per exceptions in Crashlytics and based on modern rewrites of this class
+// see https://github.com/xetorthio/jedis/blob/master/src/main/java/redis/clients/jedis/util/RedisInputStream.java
 public class RedisInputStream extends FilterInputStream {
 
     protected final byte buf[];
@@ -41,80 +43,60 @@ public class RedisInputStream extends FilterInputStream {
         this(in, 8192);
     }
 
-    public byte readByte() throws IOException {
-        if (count == limit) {
-            fill();
-
-            // SCRUFF added 7/2017 per exceptions in Crashlytics and based on modern rewrites of this class
-            // see https://github.com/xetorthio/jedis/blob/master/src/main/java/redis/clients/util/RedisInputStream.java
-            if (limit == -1) {
-                throw new JedisConnectionException("Unexpected end of stream.");
-            }
-        }
-
+    public byte readByte() throws JedisConnectionException {
+        ensureFill();
         return buf[count++];
     }
 
     public String readLine() {
-        int b;
-        byte c;
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
+        while (true) {
+            ensureFill();
 
-        try {
-            while (true) {
-                if (count == limit) {
-                    fill();
-                }
-                if (limit == -1)
+            byte b = buf[count++];
+            if (b == '\r') {
+                ensureFill(); // Must be one more byte
+
+                byte c = buf[count++];
+                if (c == '\n') {
                     break;
-                if (count >= buf.length)
-                    break;
-
-                b = buf[count++];
-                if (b == '\r') {
-                    if (count == limit) {
-                        fill();
-                    }
-
-                    if (limit == -1) {
-                        sb.append((char) b);
-                        break;
-                    }
-
-                    c = buf[count++];
-                    if (c == '\n') {
-                        break;
-                    }
-                    sb.append((char) b);
-                    sb.append((char) c);
-                } else {
-                    sb.append((char) b);
                 }
+                sb.append((char) b);
+                sb.append((char) c);
+            } else {
+                sb.append((char) b);
             }
-        } catch (IOException e) {
-            throw new JedisException(e);
         }
-        String reply = sb.toString();
+
+        final String reply = sb.toString();
         if (reply.length() == 0) {
-            throw new JedisConnectionException("Unexpected end of stream.");
+            throw new JedisConnectionException("It seems like server has closed the connection.");
         }
+
         return reply;
     }
 
-    public int read(byte[] b, int off, int len) throws IOException {
-        if (count == limit) {
-            fill();
-            if (limit == -1)
-                return -1;
-        }
+    @Override
+    public int read(byte[] b, int off, int len) throws JedisConnectionException {
+        ensureFill();
+
         final int length = Math.min(limit - count, len);
         System.arraycopy(buf, count, b, off, length);
         count += length;
         return length;
     }
 
-    private void fill() throws IOException {
-        limit = in.read(buf);
-        count = 0;
+    private void ensureFill() throws JedisConnectionException {
+        if (count >= limit) {
+            try {
+                limit = in.read(buf);
+                count = 0;
+                if (limit == -1) {
+                    throw new JedisConnectionException("Unexpected end of stream.");
+                }
+            } catch (IOException e) {
+                throw new JedisConnectionException(e);
+            }
+        }
     }
 }
